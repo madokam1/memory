@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск героев | Книга Памяти</title>
+    <style>
+        :root {
+            --bg-color: #111111;
+            --text-color: #ffffff;
+            --accent-color: #d4af37;
+            --card-bg: #1a1a1a;
+            --input-bg: #2a2a2a;
+            --font-main: 'Helvetica Neue', Arial, sans-serif;
+            --status-svo: #556b2f;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Навигация */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .nav-btn {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .nav-btn:hover { background: var(--accent-color); color: #000; }
+
+        /* Hero */
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at center, #222 0%, #111 70%);
+            padding: 0 20px;
+        }
+
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; }
+        .hero p { color: #ccc; max-width: 600px; margin-bottom: 40px; }
+
+        /* Поиск */
+        .search-container {
+            display: flex;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--input-bg);
+            color: white;
+            outline: none;
+        }
+
+        .search-input:focus { box-shadow: 0 0 0 2px var(--accent-color); }
+
+        /* Форма добавления (скрыта по умолчанию) */
+        .add-form-section {
+            display: none; /* Скрыто */
+            background: #151515;
+            padding: 40px;
+            border-bottom: 1px solid #333;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--accent-color); }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: var(--input-bg);
+            border: 1px solid #333;
+            color: white;
+            border-radius: 4px;
+        }
+        .submit-btn {
+            background: var(--accent-color);
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Результаты */
+        .results-section { padding: 40px; max-width: 1200px; margin: 0 auto; min-height: 400px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent-color); }
+
+        .photo-frame {
+            width: 100%;
+            height: 250px;
+            background: #333;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #555; }
+
+        .card h3 { color: var(--accent-color); margin-top: 0; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 4px;
+        }
+        .info-label { color: #777; font-size: 0.85rem; }
+        .info-val { text-align: right; max-width: 60%; }
+
+        .status-tag {
+            display: block;
+            text-align: center;
+            padding: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Память Героев</div>
+        <button class="nav-btn" onclick="toggleForm()">+ Добавить запись</button>
+    </nav>
+
+    <div id="addForm" class="add-form-section">
+        <h2 style="color: var(--accent-color);">Добавить новую запись</h2>
+        <div class="form-group">
+            <label>ФИО:</label>
+            <input type="text" id="inName" placeholder="Иванов Иван Иванович">
+        </div>
+        <div class="form-group">
+            <label>Дата рождения:</label>
+            <input type="text" id="inDob" placeholder="ДД.ММ.ГГГГ">
+        </div>
+        <div class="form-group">
+            <label>Служба / Войска:</label>
+            <input type="text" id="inService" placeholder="Название части или полка">
+        </div>
+        <div class="form-group">
+            <label>Образование / ВУЗ:</label>
+            <input type="text" id="inEdu" placeholder="Если есть">
+        </div>
+        <div class="form-group">
+            <label>Школа / Классный руководитель:</label>
+            <input type="text" id="inSchool" placeholder="№ школы, ФИО учителя">
+        </div>
+        <div class="form-group">
+            <label>Статус / Подробности:</label>
+            <input type="text" id="inStatus" placeholder="Например: В зоне СВО с...">
+        </div>
+        <div class="form-group">
+            <label>Имя файла фото (должен лежать рядом с файлом сайта):</label>
+            <input type="text" id="inPhoto" placeholder="например: photo.jpg">
+        </div>
+        <button class="submit-btn" onclick="addNewHero()">Сохранить в базу</button>
+    </div>
+
+    <div class="hero">
+        <h1>Никто не забыт</h1>
+        <p>Введите имя, фамилию, школу или подразделение для поиска.</p>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Поиск..." id="searchInput" oninput="doSearch()">
+        </div>
+    </div>
+
+    <div class="results-section">
+        <h2 class="section-title">Архив записей</h2>
+        <div class="grid" id="cardsContainer">
+            </div>
+    </div>
+
+    <script>
+        // 1. Начальная база данных (только Сергей)
+        const initialDB = [
+            {
+                name: "Шульпёнков Сергей Дмитриевич",
+                dob: "20.10.2002",
+                service: "154-й отдельный комендантский Преображенский полк",
+                edu: "ВА МТО им. Хрулёва",
+                school: "МБОУ СШ 14 (классный руководитель Варакина Н.И) 2009-2020",
+                status: "В зоне СВО с 24.02.2022",
+                photo: "sergey.jpg",
+                statusColor: "#556b2f"
+            }
+        ];
+
+        // 2. Загрузка данных (из памяти браузера или начальной базы)
+        let database = JSON.parse(localStorage.getItem('heroesDB')) || initialDB;
+
+        // 3. Функция отображения карточек
+        function renderCards(dataArray) {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = ''; // Очистить текущее
+
+            if (dataArray.length === 0) {
+                container.innerHTML = '<p style="color:#777;">Записей не найдено...</p>';
+                return;
+            }
+
+            dataArray.forEach(hero => {
+                // Проверка фото
+                let imgHTML = `<div class="no-photo">Нет фото</div>`;
+                if(hero.photo) {
+                    imgHTML = `<img src="${hero.photo}" alt="${hero.name}" onerror="this.style.display='none'">`;
+                }
+
+                const card = `
+                    <div class="card">
+                        <div class="photo-frame">
+                            ${imgHTML}
+                        </div>
+                        <h3>${hero.name}</h3>
+                        <div class="info-row"><span class="info-label">Д.Р.:</span> <span class="info-val">${hero.dob}</span></div>
+                        <div class="info-row"><span class="info-label">Служба:</span> <span class="info-val">${hero.service}</span></div>
+                        <div class="info-row"><span class="info-label">ВУЗ:</span> <span class="info-val">${hero.edu}</span></div>
+                        <div class="info-row"><span class="info-label">Школа:</span> <span class="info-val">${hero.school}</span></div>
+                        <div class="status-tag" style="background-color: ${hero.statusColor || '#333'}">${hero.status}</div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        // 4. Функция поиска
+        function doSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = database.filter(hero => {
+                return (
+                    hero.name.toLowerCase().includes(query) ||
+                    hero.service.toLowerCase().includes(query) ||
+                    hero.school.toLowerCase().includes(query)
+                );
+            });
+            
+            renderCards(filtered);
+        }
+
+        // 5. Показать/Скрыть форму
+        function toggleForm() {
+            const form = document.getElementById('addForm');
+            if (form.style.display === 'block') {
+                form.style.display = 'none';
+            } else {
+                form.style.display = 'block';
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // 6. Добавить нового человека
+        function addNewHero() {
+            const name = document.getElementById('inName').value;
+            if(!name) { alert("Введите хотя бы ФИО!"); return; }
+
+            const newHero = {
+                name: name,
+                dob: document.getElementById('inDob').value || "---",
+                service: document.getElementById('inService').value || "---",
+                edu: document.getElementById('inEdu').value || "---",
+                school: document.getElementById('inSchool').value || "---",
+                status: document.getElementById('inStatus').value || "Нет данных",
+                photo: document.getElementById('inPhoto').value || "", // Имя файла
+                statusColor: "#333" // Стандартный серый цвет
+            };
+
+            // Добавляем в массив
+            database.push(newHero);
+            // Сохраняем в память браузера
+            localStorage.setItem('heroesDB', JSON.stringify(database));
+            
+            // Очищаем поля формы
+            document.querySelectorAll('#addForm input').forEach(input => input.value = '');
+            alert('Запись добавлена!');
+            toggleForm();
+            
+            // Обновляем список
+            renderCards(database);
+        }
+
+        // Запуск при загрузке страницы
+        renderCards(database);
+
+    </script>
+</body>
+</html>
